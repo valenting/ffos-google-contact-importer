@@ -25,8 +25,6 @@
             {
                 if (event.origin !== "http://swarm.cs.pub.ro")
                     return;
-              //console.log(event.source);
-              //console.log(event.origin+'');
               console.log(event.data);
               var url = event.data+'';
               acToken =   gup(url, 'access_token');
@@ -86,8 +84,43 @@
             $('#imgHolder').attr('src', 'none.jpg');
         }
 
-        function parseEntry() {
+        // Output: contact
+        // Input: json entry
+        function parseEntry(entry) {
+            console.log(entry.title['$t']);
+            var contact = new mozContact();
+            contact.init({name: entry.title['$t']}); // Bug 723206
+            if (entry.hasOwnProperty('gd$name')) {
+                if (entry['gd$name'].hasOwnProperty('gd$givenName'))
+                    contact.givenName = entry['gd$name']['gd$givenName']['$t'];
+                if (entry['gd$name'].hasOwnProperty('gd$familyName'))
+                    contact.familyName = entry['gd$name']['gd$familyName']['$t'];
+                if (entry['gd$name'].hasOwnProperty('gd$additionalName'))
+                    contact.additionalName = entry['gd$name']['gd$additionalName']['$t'];
+                if (entry['gd$name'].hasOwnProperty('gd$nameSuffix'))
+                    contact.honorificSuffix = entry['gd$name']['gd$nameSuffix']['$t'];
+                if (entry['gd$name'].hasOwnProperty('gd$namePrefix'))
+                    contact.honorificPrefix = entry['gd$name']['gd$namePrefix']['$t'];
+                // TODO is entry.title == entry.gd$name.gd$fullName 
+            }
+
+            if (entry.hasOwnProperty('gContact$nickname'))
+                contact.nickname = entry['gContact$nickname']['$t'];
+
+            contact.tel = contact.tel || [];
+            if (entry.hasOwnProperty('gd$phoneNumber'))
+                for (var i=0;i<entry['gd$phoneNumber'].length;i++) {
+                    var jsonTel = entry['gd$phoneNumber'][i];
+                    var telField = {};
+                    if (jsonTel.hasOwnProperty('rel'))
+                        telField['type'] = jsonTel.rel.split('#')[1];
+                    if (jsonTel.hasOwnProperty('$t'))
+                        telField['value'] = jsonTel['$t'];
+                    contact.tel[i] = telField;
+                }
             
+
+            return contact;
         }
 
         function httpGet(theUrl)
@@ -101,15 +134,7 @@
             var text = JSON.parse(request.responseText);
             var entries = text.feed.entry;
             for (var i=0;i<entries.length;i++) {
-                console.log(entries[i].title['$t']);
-                var contact = new mozContact();
-                contact.init({name: entries[i].title['$t']}); // Bug 723206
-                if (entries[i].hasOwnProperty('gd$name')) {
-                    if (entries[i]['gd$name'].hasOwnProperty('gd$givenName'))
-                        contact.givenName = entries[i]['gd$name']['gd$givenName']['$t'];
-                    if (entries[i]['gd$name'].hasOwnProperty('gd$familyName'))
-                        contact.familyName = entries[i]['gd$name']['gd$familyName']['$t'];
-                }
+                var contact = parseEntry(entries[i]);
                 var request = navigator.mozContacts.save(contact);
                 request.onsuccess = function() {console.log("success");};
                 request.onerror = function() {console.log("error")};
