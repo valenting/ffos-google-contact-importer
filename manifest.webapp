@@ -1,0 +1,33 @@
+{
+  "name": "Google Importer",
+  "description": "My elevator pitch goes here",
+  "launch_path": "index.html",
+  "icons": {
+    "128": "/img/icon-128.png"
+  },
+  "type": "certified",
+  "developer": {
+    "name": "Valentin Gosu",
+    "url": "http://your-homepage-here.org"
+  },
+  "permissions": {
+    "telephony":{},
+    "voicemail":{},
+    "contacts": {
+    "description": "Required for autocompletion in the share screen",
+    "access": "readwrite"
+  },
+    "systemXHR":{},
+    "mobileconnection":{},
+    "attention":{},
+    "settings":{ "access": "readwrite" },
+    "desktop-notification":{},
+    "alarms": {},
+    "wifi-manage":{},
+    "time": {},
+    "audio-channel-telephony":{},
+    "audio-channel-ringer":{},
+    "browser":{}
+  },
+  "default_locale": "en"
+}
